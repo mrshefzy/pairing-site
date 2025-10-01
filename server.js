@@ -3,21 +3,18 @@ const { default: makeWASocket, useMultiFileAuthState, Browsers, DisconnectReason
 const pino = require('pino');
 const fs = require('fs-extra');
 const path = require('path');
+const os = require('os'); // <-- Import the 'os' module
 
 const app = express();
 const port = process.env.PORT || 3000;
 
-// --- MIDDLEWARE ---
-app.use(express.static('public')); // Serves your HTML, CSS, and JS files
-app.use(express.json());           // This MUST be enabled to parse data from the browser
+app.use(express.static('public'));
+app.use(express.json());
 
-// --- ROUTES ---
-// This route ensures index.html is served correctly.
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// The API endpoint for requesting a pairing code.
 app.post('/request-code', async (req, res) => {
     const { phoneNumber } = req.body;
     if (!phoneNumber || !/^\d+$/.test(phoneNumber)) {
@@ -25,9 +22,13 @@ app.post('/request-code', async (req, res) => {
     }
 
     const sessionId = Date.now().toString();
-    const sessionPath = path.join(__dirname, 'temp_sessions', sessionId);
+    // --- THE VERCEL FIX IS HERE: Use the /tmp directory ---
+    const sessionPath = path.join(os.tmpdir(), 'temp_sessions', sessionId);
 
     try {
+        // Ensure the directory exists
+        fs.ensureDirSync(sessionPath);
+
         const { state, saveCreds } = await useMultiFileAuthState(sessionPath);
         const sock = makeWASocket({
             logger: pino({ level: 'silent' }),
@@ -36,39 +37,28 @@ app.post('/request-code', async (req, res) => {
             auth: state,
         });
 
-        // This listener runs in the background, waiting for the connection to open.
         sock.ev.on('connection.update', async (update) => {
             const { connection } = update;
             if (connection === 'open') {
                 try {
-                    await new Promise(resolve => setTimeout(resolve, 4000)); // Wait for creds.json to be written
+                    await new Promise(resolve => setTimeout(resolve, 4000));
                     const credsPath = path.join(sessionPath, 'creds.json');
-                    const credsData = fs.readFileSync(credsPath, 'utf-8');
-                    const base64Creds = Buffer.from(credsData).toString('base64');
-                    const message = `*✅ MICHIKO-MD Session ID Generated!*\n\nCopy the code below:\n\n\`\`\`${base64Creds}\`\`\``;
-                    
-                    // Send the session ID to the user's WhatsApp
-                    await sock.sendMessage(sock.user.id, { text: message });
-                    
-                    await sock.logout(); // Gracefully disconnect
-                } catch (e) {
-                    console.error("Error sending session:", e);
-                } finally {
-                    fs.removeSync(sessionPath); // Clean up
-                }
+                    if (fs.existsSync(credsPath)) {
+                        const credsData = fs.readFileSync(credsPath, 'utf-8');
+                        const base64Creds = Buffer.from(credsData).toString('base64');
+                        const message = `*✅ MICHIKO-MD Session ID Generated!*\n\nCopy the code below:\n\n\`\`\`${base64Creds}\`\`\``;
+                        await sock.sendMessage(sock.user.id, { text: message });
+                        await sock.logout();
+                    }
+                } catch (e) { console.error("Error sending session:", e); } 
+                finally { fs.removeSync(sessionPath); }
             }
-            if (connection === 'close') {
-                fs.removeSync(sessionPath); // Clean up if connection closes for any reason
-            }
+            if (connection === 'close') { fs.removeSync(sessionPath); }
         });
 
         sock.ev.on('creds.update', saveCreds);
 
-        // --- THE CRITICAL FIX IS HERE ---
-        // 1. Actually request the pairing code.
         const code = await sock.requestPairingCode(phoneNumber);
-
-        // 2. Immediately send the code back to the browser to complete the request.
         res.json({ success: true, pairingCode: code });
 
     } catch (e) {
@@ -80,5 +70,6 @@ app.post('/request-code', async (req, res) => {
 
 app.listen(port, () => {
     console.log(`Pairing server running on port ${port}`);
-    fs.removeSync(path.join(__dirname, 'temp_sessions'));
+    // --- VERCEL FIX: Also clean the /tmp directory on startup ---
+    fs.removeSync(path.join(os.tmpdir(), 'temp_sessions'));
 });
