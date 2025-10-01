@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MICHIKO-MD | Session ID</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo">MICHIKO MD</div>
+        </nav>
+    </header>
+
+    <main class="container">
+        <div id="step1">
+            <h1 class="glow-text">Get Session ID</h1>
+            <p>Enter your full WhatsApp number with the country code (no +) to receive a pairing code.</p>
+            <form id="phone-form">
+                <input type="tel" id="phone-number" placeholder="e.g., 2348012345678" required>
+                <button type="submit" class="cta-button">Get Pairing Code</button>
+            </form>
+        </div>
+
+        <div id="step2" style="display: none;">
+            <h1 class="glow-text">Link Your Device</h1>
+            <p>Go to WhatsApp > Settings > Linked Devices and enter the code below.</p>
+            <div class="code-display" id="pairing-code"></div>
+            <p class="success-message">Your Session ID will be sent automatically to you on WhatsApp once you've entered the code.</p>
+        </div>
+
+        <div class="status" id="status-message"></div>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>

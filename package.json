@@ -1,0 +1,15 @@
+{
+  "name": "baileys-pairing-site",
+  "version": "1.0.0",
+  "description": "A web service to generate Baileys Session IDs via pairing code.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "@whiskeysockets/baileys": "latest",
+    "express": "^4.19.2",
+    "fs-extra": "^11.2.0",
+    "pino": "^8.21.0"
+  }
+}

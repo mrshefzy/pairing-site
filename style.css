@@ -1,0 +1,160 @@
+/* --- MICHIKO-MD Pairing Site Style --- */
+
+:root {
+    --primary-color: #00bfff; /* Deep Sky Blue */
+    --background-color: #0a0a1a; /* Dark Navy Blue */
+    --text-color: #e0e0e0;
+    --card-background: rgba(10, 10, 30, 0.6); /* Translucent Navy */
+    --blur-effect: backdrop-filter(blur(10px));
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    margin: 0;
+    padding: 0;
+    line-height: 1.6;
+    
+    /* --- THIS IS WHERE YOU SET THE BACKGROUND IMAGE --- */
+    background-image: url('https://files.catbox.moe/312g7d.jpg'); /* Replace with your desired URL */
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+}
+
+header {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    padding: 1rem 5%;
+    background: rgba(10, 10, 30, 0.4);
+    -webkit-backdrop-filter: var(--blur-effect);
+    backdrop-filter: var(--blur-effect);
+    z-index: 100;
+}
+
+nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--primary-color);
+}
+
+nav ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+}
+
+nav ul li {
+    margin-left: 2rem;
+}
+
+nav ul li a {
+    color: var(--text-color);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+nav ul li a:hover {
+    color: var(--primary-color);
+}
+
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    min-height: 100vh;
+    padding: 2rem;
+    text-align: center;
+}
+
+#step1, #step2 {
+    background: var(--card-background);
+    padding: 2.5rem;
+    border-radius: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    -webkit-backdrop-filter: var(--blur-effect);
+    backdrop-filter: var(--blur-effect);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    max-width: 450px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.glow-text {
+    color: var(--primary-color);
+    text-shadow: 0 0 5px var(--primary-color), 0 0 10px var(--primary-color);
+    margin-bottom: 0.5rem;
+}
+
+p {
+    margin-bottom: 1.5rem;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+input[type="tel"] {
+    width: 100%;
+    padding: 15px;
+    margin-bottom: 1rem;
+    border-radius: 8px;
+    border: 1px solid var(--primary-color);
+    background-color: rgba(0, 0, 0, 0.3);
+    color: #fff;
+    font-size: 1rem;
+    box-sizing: border-box;
+}
+
+.cta-button {
+    width: 100%;
+    padding: 15px;
+    border: none;
+    border-radius: 8px;
+    background-color: var(--primary-color);
+    color: var(--background-color);
+    font-size: 1.1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.cta-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(0, 191, 255, 0.4);
+}
+
+.code-display {
+    font-size: 2.5rem;
+    font-weight: bold;
+    letter-spacing: 8px;
+    background-color: rgba(0, 0, 0, 0.4);
+    padding: 1rem;
+    border-radius: 8px;
+    margin: 1.5rem 0;
+    color: var(--primary-color);
+    text-shadow: 0 0 8px var(--primary-color);
+    border: 1px solid var(--primary-color);
+}
+
+.success-message {
+    color: #03dac6;
+    font-weight: 500;
+}
+
+.status {
+    margin-top: 1.5rem;
+    font-weight: bold;
+    height: 20px;
+}
+
+.error { color: #cf6679; }
+.warning { font-size: 0.9rem; color: #f0e68c; }
