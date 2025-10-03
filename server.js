@@ -1,9 +1,9 @@
 const express = require('express');
 const { default: makeWASocket, useMultiFileAuthState, Browsers, DisconnectReason } = require('@whiskeysockets/baileys');
 const pino = require('pino');
-const fs = require('fs-extra');
+const fs = require('fs'); // Use the built-in 'fs' module
 const path = require('path');
-const os = require('os'); // <-- Import the 'os' module
+const os = require('os');
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -22,13 +22,10 @@ app.post('/request-code', async (req, res) => {
     }
 
     const sessionId = Date.now().toString();
-    // --- THE VERCEL FIX IS HERE: Use the /tmp directory ---
-    const sessionPath = path.join(os.tmpdir(), 'temp_sessions', sessionId);
+    const sessionPath = path.join(os.tmpdir(), sessionId);
 
     try {
-        // Ensure the directory exists
-        fs.ensureDirSync(sessionPath);
-
+        // useMultiFileAuthState from v6.6.0 will create the directory for us.
         const { state, saveCreds } = await useMultiFileAuthState(sessionPath);
         const sock = makeWASocket({
             logger: pino({ level: 'silent' }),
@@ -51,9 +48,11 @@ app.post('/request-code', async (req, res) => {
                         await sock.logout();
                     }
                 } catch (e) { console.error("Error sending session:", e); } 
-                finally { fs.removeSync(sessionPath); }
+                finally { fs.rmSync(sessionPath, { recursive: true, force: true }); }
             }
-            if (connection === 'close') { fs.removeSync(sessionPath); }
+            if (connection === 'close') {
+                fs.rmSync(sessionPath, { recursive: true, force: true });
+            }
         });
 
         sock.ev.on('creds.update', saveCreds);
@@ -63,13 +62,18 @@ app.post('/request-code', async (req, res) => {
 
     } catch (e) {
         console.error("Pairing request error:", e);
-        fs.removeSync(sessionPath);
+        fs.rmSync(sessionPath, { recursive: true, force: true });
         res.status(500).json({ error: 'Failed to request pairing code. The number may be invalid.' });
     }
 });
 
 app.listen(port, () => {
     console.log(`Pairing server running on port ${port}`);
-    // --- VERCEL FIX: Also clean the /tmp directory on startup ---
-    fs.removeSync(path.join(os.tmpdir(), 'temp_sessions'));
+    // Clean up old sessions, if any.
+    const tempDir = os.tmpdir();
+    fs.readdirSync(tempDir).forEach(file => {
+        if (!isNaN(parseInt(file))) { // Check if the folder name is a number (our sessionId)
+            fs.rmSync(path.join(tempDir, file), { recursive: true, force: true });
+        }
+    });
 });
